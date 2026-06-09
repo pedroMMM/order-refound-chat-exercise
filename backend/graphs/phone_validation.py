@@ -13,6 +13,18 @@ DEMO_PHONE_MAP = {
     "5551234567": "CUST-001",
     "5559876543": "CUST-002",
     "5550001111": "CUST-003",
+    "5555555555": "CUST-004",
+    "5552223333": "CUST-005",
+    "5554445555": "CUST-006",
+    "5556667777": "CUST-007",
+    "5558889999": "CUST-008",
+    "5551112222": "CUST-009",
+    "5553334444": "CUST-010",
+    "5555556666": "CUST-011",
+    "5557778888": "CUST-012",
+    "5559990000": "CUST-013",
+    "5552229999": "CUST-014",
+    "5554440000": "CUST-015",
 }
 DEMO_FALLBACK_CUSTOMER = "CUST-001"
 
@@ -42,12 +54,28 @@ def ask_for_phone(state: PhoneValidationState) -> PhoneValidationState:
     return {"messages": [AIMessage(content=ASK_PHONE_MSG)]}
 
 
+def _get_first_name(customer_id: str) -> str | None:
+    import json
+    from pathlib import Path
+    try:
+        data_path = Path(__file__).parent.parent.parent / "data" / "customers.json"
+        customers = json.loads(data_path.read_text())
+        for c in customers:
+            if c["customer_id"] == customer_id:
+                return c["name"].split()[0]
+    except Exception:
+        pass
+    return None
+
+
 def bypass_verify(state: PhoneValidationState) -> PhoneValidationState:
     """Hardcoded demo bypass — always succeeds, logs the bypass explicitly."""
     phone = state.get("phone_number") or _extract_phone(state["messages"])
     customer_id = DEMO_PHONE_MAP.get(phone or "", DEMO_FALLBACK_CUSTOMER)
+    first_name = _get_first_name(customer_id)
+    greeting = f"Hi {first_name}! " if first_name else ""
     reply = (
-        "Got it — bypassing phone verification in demo mode. "
+        f"{greeting}Got it — bypassing phone verification in demo mode. "
         "How can I help you today?"
     )
     return {

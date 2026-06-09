@@ -49,3 +49,19 @@ run = "uv run --project backend python evals/seed_dataset.py"
 [tasks.eval-run]
 description = "Run evals against the agent and score in Langfuse"
 run = "uv run --project backend python evals/run_evals.py"
+
+[tasks.install-frontend]
+description = "Install frontend Node deps"
+run = "npm --prefix frontend install"
+
+[tasks.dev-frontend]
+description = "Start frontend dev server on :5173"
+run = "npm --prefix frontend run dev"
+
+[tasks.dev-all]
+description = "Start backend + frontend concurrently"
+run = """
+mise run dev &
+mise run dev-frontend &
+wait
+"""

@@ -62,9 +62,18 @@ Two-panel React app:
 - Input box + send button
 
 **Right panel — Admin Trace:**
-- Live trace for active session
-- Each trace step shows: tool called, inputs, output, reasoning snippet, latency, tokens
-- Auto-refreshes after each message
+- Live trace for active session, auto-updates as SSE events arrive
+- **Session State card** — customer_id, phone_verified, phone_number after each turn
+- **Execution Flow card** — visual pill chain showing nodes visited (START → phone_validation → llm → tools → END) with per-node latency in ms
+- **Routing cards** — every conditional edge decision with `from → to` and reason text
+- **LLM Reasoning cards** — intermediate AIMessage content + list of tool calls the LLM planned
+- **Tool Call cards** — tool name + full JSON input args
+- **Tool Result cards** — tool name + full JSON output
+- **System cards** — state-change events (e.g. phone_verified with customer_id)
+
+SSE event types emitted by backend: `node_start`, `node_end`, `routing`, `llm_reasoning`, `tool_call`, `tool_result`, `system`, `session_state`, `token`, `done`
+
+Customer first name injected into LLM system prompt after phone verification — agent uses it naturally throughout conversation.
 
 ## Architecture Decisions
 

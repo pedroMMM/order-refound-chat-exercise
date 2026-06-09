@@ -1,4 +1,3 @@
-import asyncio
 import json
 import uuid
 
@@ -6,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from langfuse.langchain import CallbackHandler
+from langchain_core.messages import HumanMessage, AIMessage
 from pydantic import BaseModel
 
 from agent import agent
@@ -18,10 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-sessions: dict[str, list] = {}
-
-# CallbackHandler reads LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, LANGFUSE_HOST from env
-# (set in .mise.toml)
+sessions: dict[str, dict] = {}
 
 
 class ChatRequest(BaseModel):
@@ -29,36 +26,84 @@ class ChatRequest(BaseModel):
     session_id: str | None = None
 
 
+def _sse(obj: dict) -> str:
+    return f"data: {json.dumps(obj)}\n\n"
+
+
 @app.post("/chat")
 async def chat(req: ChatRequest):
     session_id = req.session_id or str(uuid.uuid4())
-    sessions.setdefault(session_id, [])
-    sessions[session_id].append({"role": "user", "content": req.message})
+    prev = sessions.get(session_id, {
+        "messages": [],
+        "session_id": session_id,
+        "customer_id": None,
+        "phone_verified": False,
+        "phone_number": None,
+    })
 
-    langfuse_handler = CallbackHandler(trace_context={"trace_id": session_id})
+    state_in = {
+        **prev,
+        "messages": prev["messages"] + [HumanMessage(content=req.message)],
+    }
+
+    trace_id = session_id.replace("-", "")
+    langfuse_handler = CallbackHandler(trace_context={"trace_id": trace_id})
 
     async def stream():
-        from langchain_core.messages import HumanMessage
+        final_state = dict(prev)
 
-        result = agent.invoke(
-            {
-                "messages": [HumanMessage(content=m["content"]) for m in sessions[session_id] if m["role"] == "user"],
-                "session_id": session_id,
-            },
+        for stream_mode, data in agent.stream(
+            state_in,
             config={"callbacks": [langfuse_handler]},
-        )
-        reply = result["messages"][-1].content
-        sessions[session_id].append({"role": "assistant", "content": reply})
+            stream_mode=["updates", "custom"],
+        ):
+            if stream_mode == "custom":
+                # nodes own event creation — just forward
+                yield _sse(data)
 
+            elif stream_mode == "updates":
+                # merge state for session persistence
+                for node_name, state_update in data.items():
+                    for k, v in state_update.items():
+                        if k != "messages":
+                            final_state[k] = v
+                    if "messages" in state_update:
+                        final_state["messages"] = state_update["messages"]
+
+        # persist session
+        sessions[session_id] = {
+            "messages": final_state.get("messages", []),
+            "session_id": session_id,
+            "customer_id": final_state.get("customer_id"),
+            "phone_verified": final_state.get("phone_verified", False),
+            "phone_number": final_state.get("phone_number"),
+        }
+
+        # emit session state snapshot
+        yield _sse({"type": "session_state", "data": {
+            "customer_id": sessions[session_id]["customer_id"],
+            "phone_verified": sessions[session_id]["phone_verified"],
+            "phone_number": sessions[session_id]["phone_number"],
+        }})
+
+        # stream final reply tokens
+        reply = ""
+        for msg in reversed(sessions[session_id]["messages"]):
+            if isinstance(msg, AIMessage) and not msg.tool_calls and msg.content:
+                reply = msg.content
+                break
         for token in reply.split():
-            yield f"data: {json.dumps({'type': 'token', 'content': token + ' '})}\n\n"
-            await asyncio.sleep(0)
+            yield _sse({"type": "token", "content": token + " "})
 
-        yield f"data: {json.dumps({'type': 'done', 'session_id': session_id})}\n\n"
+        yield _sse({"type": "done", "session_id": session_id})
 
     return StreamingResponse(stream(), media_type="text/event-stream")
 
 
 @app.get("/sessions/{session_id}/trace")
 async def get_trace(session_id: str):
-    return {"session_id": session_id, "messages": sessions.get(session_id, [])}
+    s = sessions.get(session_id)
+    if not s:
+        return {"session_id": session_id, "messages": []}
+    msgs = [{"type": type(m).__name__, "content": m.content} for m in s["messages"]]
+    return {"session_id": session_id, "messages": msgs, "customer_id": s.get("customer_id")}
