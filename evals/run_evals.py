@@ -5,7 +5,7 @@ from langfuse import get_client, Evaluation
 
 BACKEND_URL = "http://localhost:8000"
 DATASET_NAME = "refund-agent-evals"
-RUN_NAME = "stub-agent-v0"
+RUN_NAME = "phone-validation-v1"
 
 lf = get_client()
 
@@ -49,7 +49,7 @@ dataset = lf.get_dataset(DATASET_NAME)
 
 result = dataset.run_experiment(
     name=RUN_NAME,
-    description="Empty LangGraph stub — all evals expected to fail",
+    description="Phone validation implemented (bypass). Policy enforcement pending.",
     task=task,
     evaluators=[policy_compliance],
     metadata={"backend": BACKEND_URL, "agent": "stub"},

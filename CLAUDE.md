@@ -13,7 +13,7 @@ E-commerce customer support agent that processes or denies refund requests. Cust
 | Agent orchestration | LangGraph (agent loop + tool calling) |
 | Evals | Langfuse |
 | Frontend | React SPA |
-| LLM | Claude (claude-haiku-4-5-20251001) |
+| LLM | OpenAI (gpt-5.4-mini) |
 | Data | JSON flat files (mock CRM) |
 
 ## Components
@@ -71,7 +71,7 @@ Two-panel React app:
 | Decision | Choice | Why |
 |----------|--------|-----|
 | Runtime mgmt | mise | Single tool pins Python + Node versions and replaces `Makefile`/`docker-compose` for local dev tasks. `mise install` is the only bootstrap step — no separate `nvm`, `pyenv`, or `virtualenv` commands. |
-| Model | `claude-haiku-4-5-20251001` | Refund policy enforcement is rule-lookup + tool calls, not complex reasoning. Haiku is 10x cheaper and ~2x faster than Sonnet with no quality tradeoff for this task. |
+| Model | `gpt-5.4-mini` | Switched from Haiku to OpenAI for broader compatibility. gpt-5.4-mini is fast and cheap for tool-call-heavy workflows. Env var: `OPENAI_API_KEY`. |
 | Identity resolution | Phone number via agent tool | More realistic than a dropdown — shows the agent can gather context conversationally. Demo mode bypasses actual verification so the flow is testable without real auth infrastructure. |
 | `/chat` transport | SSE streaming | Tokens render as they arrive — eliminates perceived latency for multi-tool-call turns that can take 3–5s. Tool call/result events also stream so the trace panel updates live without polling. |
 | Evals | Langfuse 3 | OSS, self-hostable. Integrates via `langfuse.callback.CallbackHandler`, works with LangGraph out of the box. Local stack = 6 containers: `langfuse-web`, `langfuse-worker`, Postgres, ClickHouse (trace analytics), MinIO (blob/event storage), Redis (BullMQ queue). Pre-seeded keys: `pk-lf-local-demo` / `sk-lf-local-demo`. UI at `http://localhost:3000`, login `admin@demo.local` / `demo1234`. |
@@ -118,9 +118,9 @@ mise run dev        # starts backend + frontend concurrently
 
 Set env vars before running:
 ```bash
-export ANTHROPIC_API_KEY=sk-...
-export LANGFUSE_PUBLIC_KEY=...
-export LANGFUSE_SECRET_KEY=...
+export OPENAI_API_KEY=sk-...
+export LANGFUSE_PUBLIC_KEY=...   # pre-set in .mise.toml for local dev
+export LANGFUSE_SECRET_KEY=...   # pre-set in .mise.toml for local dev
 ```
 
 ## Definition of Done

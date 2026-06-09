@@ -26,7 +26,7 @@
 | Agent orchestration | LangGraph (agent loop + tool calling) |
 | Evals | Langfuse 3 (self-hosted) |
 | Frontend | React SPA |
-| LLM | Claude (`claude-haiku-4-5-20251001`) |
+| LLM | OpenAI (`gpt-5.4-mini`) |
 | Data | JSON flat files (mock CRM) |
 
 ## Architecture Decisions
@@ -83,7 +83,7 @@ mise run eval-run    # run against agent, score in Langfuse
 ### Environment Variables
 
 ```bash
-export ANTHROPIC_API_KEY=sk-...
+export OPENAI_API_KEY=sk-...
 # Langfuse keys are pre-set in .mise.toml for local dev:
 # LANGFUSE_PUBLIC_KEY=pk-lf-local-demo
 # LANGFUSE_SECRET_KEY=sk-lf-local-demo
