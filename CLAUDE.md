@@ -93,6 +93,15 @@ Two-panel React app:
 
 Always use `mise run <task>` — never call `docker compose`, `uvicorn`, `npm`, or `pip` directly. All tasks are defined in `.mise.toml`.
 
+Keep `README.md` in sync when making major changes:
+- Stack changes (new service, removed dep, different model)
+- New or removed mise tasks
+- Changed ports, URLs, or credentials
+- New setup steps required for cold start
+- Structural changes to `frontend/`, `backend/`, or `data/`
+
+`README.md` is the external-facing doc; `CLAUDE.md` is the implementation spec. Both should reflect current reality.
+
 ## Running the App
 
 ```bash
