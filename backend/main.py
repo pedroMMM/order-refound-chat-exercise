@@ -4,7 +4,7 @@ import uuid
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from langfuse.langchain import CallbackHandler
+from langfuse.callback import CallbackHandler
 from langchain_core.messages import HumanMessage, AIMessage
 from pydantic import BaseModel
 
@@ -33,68 +33,83 @@ def _sse(obj: dict) -> str:
 @app.post("/chat")
 async def chat(req: ChatRequest):
     session_id = req.session_id or str(uuid.uuid4())
-    prev = sessions.get(session_id, {
-        "messages": [],
-        "session_id": session_id,
-        "customer_id": None,
-        "phone_verified": False,
-        "phone_number": None,
-    })
+    prev = sessions.get(
+        session_id,
+        {
+            "messages": [],
+            "session_id": session_id,
+            "customer_id": None,
+            "phone_verified": False,
+            "phone_number": None,
+            "customer_profile": None,
+        },
+    )
 
     state_in = {
         **prev,
         "messages": prev["messages"] + [HumanMessage(content=req.message)],
+        # reset per-turn fields
+        "order_id": None,
+        "intent": None,
+        "eligibility": None,
+        "action_taken": None,
     }
 
     trace_id = session_id.replace("-", "")
-    langfuse_handler = CallbackHandler(trace_context={"trace_id": trace_id})
+    langfuse_handler = CallbackHandler(trace_id=trace_id)
 
     async def stream():
-        final_state = dict(prev)
+        # Accumulate state from node updates; messages appended incrementally.
+        partial_state: dict = {}
+        all_messages = list(state_in["messages"])
 
-        for stream_mode, data in agent.stream(
-            state_in,
-            config={"callbacks": [langfuse_handler]},
-            stream_mode=["updates", "custom"],
-        ):
-            if stream_mode == "custom":
-                # nodes own event creation — just forward
-                yield _sse(data)
+        config = {"callbacks": [langfuse_handler]}
 
-            elif stream_mode == "updates":
-                # merge state for session persistence
-                for node_name, state_update in data.items():
-                    for k, v in state_update.items():
+        async for event in agent.astream_events(state_in, config=config, version="v2"):
+            kind = event["event"]
+            metadata = event.get("metadata", {})
+
+            # Forward our custom trace events
+            if kind == "on_custom_event" and event["name"] == "trace":
+                yield _sse(event["data"])
+
+            # Stream tokens only from the response-generation node
+            elif kind == "on_chat_model_stream":
+                if metadata.get("langgraph_node") == "generate_response":
+                    chunk = event["data"]["chunk"]
+                    if isinstance(chunk.content, str) and chunk.content:
+                        yield _sse({"type": "token", "content": chunk.content})
+
+            # Accumulate state updates from each node
+            elif kind == "on_chain_stream" and metadata.get("langgraph_node"):
+                chunk = event["data"].get("chunk") or {}
+                if isinstance(chunk, dict):
+                    for k, v in chunk.items():
                         if k != "messages":
-                            final_state[k] = v
-                    if "messages" in state_update:
-                        final_state["messages"] = state_update["messages"]
+                            partial_state[k] = v
+                    if "messages" in chunk:
+                        all_messages.extend(chunk["messages"])
 
-        # persist session
+        # Persist updated session state
         sessions[session_id] = {
-            "messages": final_state.get("messages", []),
+            "messages": all_messages,
             "session_id": session_id,
-            "customer_id": final_state.get("customer_id"),
-            "phone_verified": final_state.get("phone_verified", False),
-            "phone_number": final_state.get("phone_number"),
+            "customer_id": partial_state.get("customer_id", prev.get("customer_id")),
+            "phone_verified": partial_state.get("phone_verified", prev.get("phone_verified", False)),
+            "phone_number": partial_state.get("phone_number", prev.get("phone_number")),
+            "customer_profile": partial_state.get("customer_profile", prev.get("customer_profile")),
         }
 
-        # emit session state snapshot
-        yield _sse({"type": "session_state", "data": {
-            "customer_id": sessions[session_id]["customer_id"],
-            "phone_verified": sessions[session_id]["phone_verified"],
-            "phone_number": sessions[session_id]["phone_number"],
-        }})
-
-        # stream final reply tokens
-        reply = ""
-        for msg in reversed(sessions[session_id]["messages"]):
-            if isinstance(msg, AIMessage) and not msg.tool_calls and msg.content:
-                reply = msg.content
-                break
-        for token in reply.split():
-            yield _sse({"type": "token", "content": token + " "})
-
+        yield _sse(
+            {
+                "type": "session_state",
+                "data": {
+                    "customer_id": sessions[session_id]["customer_id"],
+                    "phone_verified": sessions[session_id]["phone_verified"],
+                    "phone_number": sessions[session_id]["phone_number"],
+                },
+            }
+        )
         yield _sse({"type": "done", "session_id": session_id})
 
     return StreamingResponse(stream(), media_type="text/event-stream")
@@ -106,4 +121,8 @@ async def get_trace(session_id: str):
     if not s:
         return {"session_id": session_id, "messages": []}
     msgs = [{"type": type(m).__name__, "content": m.content} for m in s["messages"]]
-    return {"session_id": session_id, "messages": msgs, "customer_id": s.get("customer_id")}
+    return {
+        "session_id": session_id,
+        "messages": msgs,
+        "customer_id": s.get("customer_id"),
+    }

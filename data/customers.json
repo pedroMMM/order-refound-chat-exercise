@@ -1,0 +1,107 @@
+[
+  {
+    "customer_id": "CUST-001",
+    "name": "Alice Martin",
+    "email": "alice@example.com",
+    "phone": "5551234567",
+    "order_ids": ["ORD-001", "ORD-002"]
+  },
+  {
+    "customer_id": "CUST-002",
+    "name": "Bob Chen",
+    "email": "bob@example.com",
+    "phone": "5559876543",
+    "order_ids": ["ORD-003", "ORD-004"]
+  },
+  {
+    "customer_id": "CUST-003",
+    "name": "Carol Davis",
+    "email": "carol@example.com",
+    "phone": "5550001111",
+    "order_ids": ["ORD-005"]
+  },
+  {
+    "customer_id": "CUST-004",
+    "name": "Dan Rivera",
+    "email": "dan@example.com",
+    "phone": "5555555555",
+    "order_ids": ["ORD-006", "ORD-007"]
+  },
+  {
+    "customer_id": "CUST-005",
+    "name": "Eva Müller",
+    "email": "eva@example.com",
+    "phone": "5552223333",
+    "order_ids": ["ORD-008"]
+  },
+  {
+    "customer_id": "CUST-006",
+    "name": "Frank Torres",
+    "email": "frank@example.com",
+    "phone": "5554445555",
+    "order_ids": ["ORD-009", "ORD-010"]
+  },
+  {
+    "customer_id": "CUST-007",
+    "name": "Grace Kim",
+    "email": "grace@example.com",
+    "phone": "5556667777",
+    "order_ids": ["ORD-011"]
+  },
+  {
+    "customer_id": "CUST-008",
+    "name": "Hank Patel",
+    "email": "hank@example.com",
+    "phone": "5558889999",
+    "order_ids": ["ORD-012", "ORD-013"]
+  },
+  {
+    "customer_id": "CUST-009",
+    "name": "Iris Nguyen",
+    "email": "iris@example.com",
+    "phone": "5551112222",
+    "order_ids": ["ORD-014"]
+  },
+  {
+    "customer_id": "CUST-010",
+    "name": "Jake Thompson",
+    "email": "jake@example.com",
+    "phone": "5553334444",
+    "order_ids": ["ORD-015"]
+  },
+  {
+    "customer_id": "CUST-011",
+    "name": "Kate Brown",
+    "email": "kate@example.com",
+    "phone": "5555556666",
+    "order_ids": ["ORD-016", "ORD-017"]
+  },
+  {
+    "customer_id": "CUST-012",
+    "name": "Leo Sanchez",
+    "email": "leo@example.com",
+    "phone": "5557778888",
+    "order_ids": ["ORD-018"]
+  },
+  {
+    "customer_id": "CUST-013",
+    "name": "Mia Johnson",
+    "email": "mia@example.com",
+    "phone": "5559990000",
+    "order_ids": ["ORD-019"]
+  },
+  {
+    "customer_id": "CUST-014",
+    "name": "Noah Williams",
+    "email": "noah@example.com",
+    "phone": "5552229999",
+    "order_ids": ["ORD-020"]
+  },
+  {
+    "customer_id": "CUST-015",
+    "name": "Olivia Garcia",
+    "email": "olivia@example.com",
+    "phone": "5554440000",
+    "order_ids": ["ORD-021", "ORD-022"]
+  }
+]

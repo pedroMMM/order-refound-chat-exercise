@@ -40,8 +40,5 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Docker volumes (local only)
-data/
-
 # oh-my-claudecode
 .omc

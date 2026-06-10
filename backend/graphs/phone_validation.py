@@ -3,10 +3,18 @@
 Demo mode: always bypasses real lookup. Sets customer_id from hardcoded map.
 In production, replace _lookup_by_phone with a real CRM call.
 """
+
+import json
+import re
+import time
+from pathlib import Path
 from typing import TypedDict, Annotated
+
+from langchain_core.callbacks import dispatch_custom_event
 from langchain_core.messages import BaseMessage, AIMessage, HumanMessage
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
+from langgraph.graph.state import CompiledStateGraph
 
 
 DEMO_PHONE_MAP = {
@@ -39,8 +47,6 @@ class PhoneValidationState(TypedDict):
 
 
 def _extract_phone(messages: list[BaseMessage]) -> str | None:
-    """Return last user-provided phone-like string, or None."""
-    import re
     for msg in reversed(messages):
         if isinstance(msg, HumanMessage):
             digits = re.sub(r"\D", "", msg.content)
@@ -49,14 +55,7 @@ def _extract_phone(messages: list[BaseMessage]) -> str | None:
     return None
 
 
-def ask_for_phone(state: PhoneValidationState) -> PhoneValidationState:
-    """Emit the 'please give me your phone number' message."""
-    return {"messages": [AIMessage(content=ASK_PHONE_MSG)]}
-
-
-def _get_first_name(customer_id: str) -> str | None:
-    import json
-    from pathlib import Path
+def _get_customer_first_name(customer_id: str) -> str | None:
     try:
         data_path = Path(__file__).parent.parent.parent / "data" / "customers.json"
         customers = json.loads(data_path.read_text())
@@ -68,16 +67,46 @@ def _get_first_name(customer_id: str) -> str | None:
     return None
 
 
-def bypass_verify(state: PhoneValidationState) -> PhoneValidationState:
-    """Hardcoded demo bypass — always succeeds, logs the bypass explicitly."""
+def _emit(payload: dict) -> None:
+    try:
+        import sys
+        print(f"[TRACE] {json.dumps(payload)}", flush=True, file=sys.stdout)
+        dispatch_custom_event("trace", payload)
+    except Exception:
+        pass
+
+
+def ask_for_phone(state: PhoneValidationState) -> dict:
+    t0 = time.time()
+    _emit({"type": "node_start", "node": "ask_for_phone"})
+    _emit({"type": "node_end", "node": "ask_for_phone", "duration_ms": round((time.time() - t0) * 1000)})
+    return {"messages": [AIMessage(content=ASK_PHONE_MSG)]}
+
+
+def bypass_verify(state: PhoneValidationState) -> dict:
+    t0 = time.time()
+    _emit({"type": "node_start", "node": "bypass_verify"})
+
     phone = state.get("phone_number") or _extract_phone(state["messages"])
     customer_id = DEMO_PHONE_MAP.get(phone or "", DEMO_FALLBACK_CUSTOMER)
-    first_name = _get_first_name(customer_id)
+    first_name = _get_customer_first_name(customer_id)
     greeting = f"Hi {first_name}! " if first_name else ""
     reply = (
         f"{greeting}Got it — bypassing phone verification in demo mode. "
         "How can I help you today?"
     )
+
+    _emit({
+        "type": "system",
+        "name": "phone_verified",
+        "data": {
+            "customer_id": customer_id,
+            "phone": phone,
+            "first_name": first_name,
+        },
+    })
+    _emit({"type": "node_end", "node": "bypass_verify", "duration_ms": round((time.time() - t0) * 1000)})
+
     return {
         "messages": [AIMessage(content=reply)],
         "customer_id": customer_id,
@@ -91,7 +120,7 @@ def route(state: PhoneValidationState) -> str:
     return "bypass_verify" if phone else "ask_for_phone"
 
 
-def create_phone_validation_graph() -> StateGraph:
+def create_phone_validation_graph() -> CompiledStateGraph:
     graph = StateGraph(PhoneValidationState)
     graph.add_node("ask_for_phone", ask_for_phone)
     graph.add_node("bypass_verify", bypass_verify)

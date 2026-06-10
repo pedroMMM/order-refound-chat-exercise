@@ -1,4 +1,5 @@
 """Agent tools — read from data/ JSON files."""
+
 import json
 from datetime import date, datetime
 from pathlib import Path
@@ -89,11 +90,14 @@ def check_refund_eligibility(order_id: str) -> dict:
     customers = _load("customers.json")
     customer = next((c for c in customers if c["customer_id"] == customer_id), None)
     if customer:
-        cutoff = date(date.today().year - (1 if date.today().month <= 6 else 0),
-                      (date.today().month + 6 - 1) % 12 + 1,
-                      date.today().day)
+        cutoff = date(
+            date.today().year - (1 if date.today().month <= 6 else 0),
+            (date.today().month + 6 - 1) % 12 + 1,
+            date.today().day,
+        )
         recent_refunds = sum(
-            1 for o in orders
+            1
+            for o in orders
             if o["customer_id"] == customer_id
             and o["status"] == "refunded"
             and date.fromisoformat(o["date"]) >= cutoff

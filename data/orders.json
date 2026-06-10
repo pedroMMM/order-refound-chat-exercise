@@ -1,0 +1,222 @@
+[
+  {
+    "order_id": "ORD-001",
+    "customer_id": "CUST-001",
+    "product": "Wireless Headphones",
+    "price": 89.99,
+    "date": "2026-05-25",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-002",
+    "customer_id": "CUST-001",
+    "product": "Running Shoes (Final Sale)",
+    "price": 129.99,
+    "date": "2026-05-10",
+    "status": "delivered",
+    "is_final_sale": true,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-003",
+    "customer_id": "CUST-002",
+    "product": "4K Monitor",
+    "price": 649.00,
+    "date": "2026-06-01",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-004",
+    "customer_id": "CUST-002",
+    "product": "USB Hub",
+    "price": 34.99,
+    "date": "2025-12-01",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-005",
+    "customer_id": "CUST-003",
+    "product": "Blender",
+    "price": 79.99,
+    "date": "2026-06-05",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": true
+  },
+  {
+    "order_id": "ORD-006",
+    "customer_id": "CUST-004",
+    "product": "Mechanical Keyboard",
+    "price": 149.99,
+    "date": "2026-05-30",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-007",
+    "customer_id": "CUST-004",
+    "product": "Mouse Pad XL",
+    "price": 24.99,
+    "date": "2026-05-28",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-008",
+    "customer_id": "CUST-005",
+    "product": "Standing Desk (Final Sale)",
+    "price": 449.00,
+    "date": "2026-04-15",
+    "status": "delivered",
+    "is_final_sale": true,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-009",
+    "customer_id": "CUST-006",
+    "product": "Smartwatch",
+    "price": 299.99,
+    "date": "2026-04-01",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-010",
+    "customer_id": "CUST-006",
+    "product": "Laptop Bag",
+    "price": 59.99,
+    "date": "2026-06-03",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-011",
+    "customer_id": "CUST-007",
+    "product": "Noise-Cancelling Earbuds",
+    "price": 199.99,
+    "date": "2026-06-07",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-012",
+    "customer_id": "CUST-008",
+    "product": "Gaming Chair",
+    "price": 550.00,
+    "date": "2026-05-20",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-013",
+    "customer_id": "CUST-008",
+    "product": "Webcam",
+    "price": 89.99,
+    "date": "2026-05-15",
+    "status": "refunded",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-014",
+    "customer_id": "CUST-009",
+    "product": "Portable SSD",
+    "price": 109.99,
+    "date": "2026-06-01",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-015",
+    "customer_id": "CUST-010",
+    "product": "Coffee Maker",
+    "price": 74.99,
+    "date": "2026-01-05",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-016",
+    "customer_id": "CUST-011",
+    "product": "Air Purifier",
+    "price": 189.99,
+    "date": "2026-05-01",
+    "status": "refunded",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-017",
+    "customer_id": "CUST-011",
+    "product": "Desk Lamp",
+    "price": 44.99,
+    "date": "2026-03-15",
+    "status": "refunded",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-018",
+    "customer_id": "CUST-012",
+    "product": "Tablet Stand",
+    "price": 29.99,
+    "date": "2026-06-04",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-019",
+    "customer_id": "CUST-013",
+    "product": "Smart Speaker",
+    "price": 129.99,
+    "date": "2026-05-18",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-020",
+    "customer_id": "CUST-014",
+    "product": "Electric Kettle",
+    "price": 54.99,
+    "date": "2026-06-06",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-021",
+    "customer_id": "CUST-015",
+    "product": "Yoga Mat (Final Sale)",
+    "price": 39.99,
+    "date": "2026-05-22",
+    "status": "delivered",
+    "is_final_sale": true,
+    "is_defective": false
+  },
+  {
+    "order_id": "ORD-022",
+    "customer_id": "CUST-015",
+    "product": "Resistance Bands Set",
+    "price": 24.99,
+    "date": "2026-06-02",
+    "status": "delivered",
+    "is_final_sale": false,
+    "is_defective": false
+  }
+]
