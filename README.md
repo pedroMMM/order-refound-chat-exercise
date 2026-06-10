@@ -34,7 +34,7 @@
 | Decision | Choice | Why |
 |----------|--------|-----|
 | Runtime mgmt | mise | Single tool pins Python + Node versions. `mise install` is the only bootstrap step. |
-| Model | `claude-haiku-4-5-20251001` | Policy enforcement is rule-lookup + tool calls. Haiku is 10x cheaper and ~2x faster than Sonnet with no quality tradeoff here. |
+| Model | `gpt-5.4-mini` | Fast, cheap, strong tool-call performance. Policy enforcement is rule-lookup + tool calls — no reasoning overhead needed. |
 | Identity resolution | Phone number via agent tool | More realistic than a dropdown — agent gathers context conversationally. Demo mode bypasses actual verification. |
 | `/chat` transport | SSE streaming | Tokens render as they arrive — eliminates perceived latency for multi-tool-call turns. Tool call/result events stream so trace panel updates live. |
 | Evals | Langfuse 3 | OSS, self-hostable. Integrates via `langfuse.langchain.CallbackHandler`. Local stack = 6 containers: web, worker, Postgres, ClickHouse, MinIO, Redis. Pre-seeded keys, no UI setup required. |
@@ -48,7 +48,7 @@
 
 - [mise](https://mise.jdx.dev) — `brew install mise`
 - Docker Desktop (running)
-- `ANTHROPIC_API_KEY`
+- `OPENAI_API_KEY`
 
 ### Setup
 
@@ -63,15 +63,20 @@ mise install
 mise run langfuse-up
 mise run langfuse-wait   # blocks until healthy
 
-# install backend deps
+# install backend + frontend deps
 mise run install
+mise run install-frontend
 
-# start backend API
-mise run dev
+# set API key
+export OPENAI_API_KEY=sk-...
+
+# start backend + frontend
+mise run dev-all
 ```
 
-Langfuse UI: `http://localhost:3000` — login `admin@demo.local` / `demo1234`
+Frontend: `http://localhost:5173`
 Backend API: `http://localhost:8000`
+Langfuse UI: `http://localhost:3000` — login `admin@demo.local` / `demo1234`
 
 ### Evals
 
@@ -80,17 +85,6 @@ mise run eval-seed   # create dataset (run once)
 mise run eval-run    # run against agent, score in Langfuse
 ```
 
-### Environment Variables
-
-```bash
-export OPENAI_API_KEY=sk-...
-# Langfuse keys are pre-set in .mise.toml for local dev:
-# LANGFUSE_PUBLIC_KEY=pk-lf-local-demo
-# LANGFUSE_SECRET_KEY=sk-lf-local-demo
-# LANGFUSE_HOST=http://localhost:3000
-```
-
----
 
 ## Project Structure
 
@@ -103,8 +97,8 @@ export OPENAI_API_KEY=sk-...
 ├── evals/
 │   ├── seed_dataset.py  # Create Langfuse eval dataset
 │   └── run_evals.py     # Run evals, score in Langfuse
-├── frontend/            # React SPA (not yet built)
-├── data/                # Synthetic CRM data (not yet built)
+├── frontend/            # React SPA (chat + trace panel)
+├── data/                # Synthetic CRM data (15 customers, 22 orders)
 ├── docker-compose.yml   # Langfuse 3 local stack
 ├── .mise.toml           # Runtime versions + task definitions
 └── CLAUDE.md            # Full implementation spec for Claude
@@ -119,7 +113,10 @@ export OPENAI_API_KEY=sk-...
 | `mise run langfuse-wait` | Block until Langfuse is healthy |
 | `mise run langfuse-reset` | Wipe volumes + restart |
 | `mise run install` | Install backend deps via uv |
+| `mise run install-frontend` | Install frontend Node deps |
 | `mise run dev` | Start backend API on :8000 |
+| `mise run dev-frontend` | Start frontend dev server on :5173 |
+| `mise run dev-all` | Start backend + frontend concurrently |
 | `mise run eval-seed` | Seed Langfuse dataset (run once) |
 | `mise run eval-run` | Run evals against agent |
 

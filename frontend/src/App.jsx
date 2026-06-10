@@ -123,12 +123,25 @@ function SystemCard({ event }) {
   )
 }
 
+function TokenUsageCard({ event }) {
+  return (
+    <Card color='#6b7280' title={`Token Usage · ${event.node}`} compact>
+      <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+        <span style={s.mono}>in <strong style={{ color: '#e0e0e0' }}>{event.input_tokens}</strong></span>
+        <span style={s.mono}>out <strong style={{ color: '#e0e0e0' }}>{event.output_tokens}</strong></span>
+        <span style={s.mono}>total <strong style={{ color: '#e0e0e0' }}>{event.total_tokens}</strong></span>
+      </div>
+    </Card>
+  )
+}
+
 function TraceEvent({ event }) {
   if (event.type === 'routing') return <RoutingCard event={event} />
   if (event.type === 'llm_reasoning') return <LLMReasoningCard event={event} />
   if (event.type === 'tool_call') return <ToolCallCard event={event} />
   if (event.type === 'tool_result') return <ToolResultCard event={event} />
   if (event.type === 'system') return <SystemCard event={event} />
+  if (event.type === 'token_usage') return <TokenUsageCard event={event} />
   return null
 }
 
@@ -185,7 +198,7 @@ export default function App() {
             setNodeFlow(f => [...f, { node: event.node, duration_ms: event.duration_ms }])
           } else if (event.type === 'session_state') {
             setSessionState(event.data)
-          } else if (['routing', 'llm_reasoning', 'tool_call', 'tool_result', 'system'].includes(event.type)) {
+          } else if (['routing', 'llm_reasoning', 'tool_call', 'tool_result', 'system', 'token_usage'].includes(event.type)) {
             setTraceEvents(t => [...t, event])
           }
         }
@@ -201,7 +214,7 @@ export default function App() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
   }
 
-  const visibleEvents = traceEvents.filter(e => ['routing', 'llm_reasoning', 'tool_call', 'tool_result', 'system'].includes(e.type))
+  const visibleEvents = traceEvents.filter(e => ['routing', 'llm_reasoning', 'tool_call', 'tool_result', 'system', 'token_usage'].includes(e.type))
 
   return (
     <div style={s.root}>

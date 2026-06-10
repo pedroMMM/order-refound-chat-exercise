@@ -347,6 +347,15 @@ def node_generate_response(state: AgentState) -> dict:
 
     response = get_llm().invoke(conversation)
 
+    if usage := getattr(response, "usage_metadata", None):
+        emit({
+            "type": "token_usage",
+            "node": "generate_response",
+            "input_tokens": usage.get("input_tokens", 0),
+            "output_tokens": usage.get("output_tokens", 0),
+            "total_tokens": usage.get("total_tokens", 0),
+        })
+
     emit(
         {"type": "llm_reasoning", "content": response.content, "tool_calls_planned": []}
     )
@@ -386,8 +395,21 @@ def create_agent() -> CompiledStateGraph:
 
     graph.set_conditional_entry_point(router, routing_targets)
 
-    # after each node re-evaluate (except generate_response → END)
-    for name in all_nodes:
+    # phone_validation: if not yet verified (asked for phone), end the turn and wait
+    # for next user message; if verified, continue normal routing
+    def _after_phone_validation(state: AgentState) -> str:
+        if not state.get("phone_verified"):
+            return END
+        return router(state)
+
+    graph.add_conditional_edges(
+        "phone_validation",
+        _after_phone_validation,
+        {**routing_targets, END: END},
+    )
+
+    # after all other nodes re-evaluate (except generate_response → END)
+    for name in other_nodes:
         if name == "generate_response":
             graph.add_edge(name, END)
         else:

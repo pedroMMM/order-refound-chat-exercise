@@ -12,7 +12,7 @@ from langfuse import get_client
 
 lf = get_client()
 
-DATASET_NAME = "refund-agent-evals"
+DATASET_NAME = "refund-agent-evals-v2"
 
 try:
     lf.get_dataset(DATASET_NAME)

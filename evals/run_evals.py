@@ -8,7 +8,7 @@ import requests
 from langfuse import get_client, Evaluation
 
 BACKEND_URL = "http://localhost:8000"
-DATASET_NAME = "refund-agent-evals"
+DATASET_NAME = "refund-agent-evals-v2"
 RUN_NAME = "policy-enforcement-v1"
 
 lf = get_client()
